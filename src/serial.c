@@ -71,6 +71,8 @@
 #define MSP_GPSDEBUGINFO         166    //out message         get GPS debugging data (only U-Blox)
 #define MSP_SERVOMIX_CONF        241    //out message         Returns servo mixer configuration
 #define MSP_SET_SERVOMIX_CONF    242    //in message          Sets servo mixer configuration
+#define MSP_REMOTEGAINS          170    //out message         4 remotegain_t gain adjustment sets
+#define MSP_SET_REMOTEGAINS      171    //in message          4 remotegain_t gain adjustment sets
 
 // Additional private MSP for baseflight configurator
 #define MSP_RCMAP                64     //out message         get channel map (also returns number of channels total)
@@ -113,6 +115,7 @@ static const box_t boxes[] = {
     { BOXSERVO1, "SERVO1;", 21 },
     { BOXSERVO2, "SERVO2;", 22 },
     { BOXSERVO3, "SERVO3;", 23 },
+    { BOXREMOTEGAINS, "REMOTE GAINS;", 21 },
     { CHECKBOXITEMS, NULL, 0xFF }
 };
 
@@ -321,6 +324,8 @@ void serialInit(uint32_t baudrate)
         availableBoxes[idx++] = BOXSERVO2;
         availableBoxes[idx++] = BOXSERVO3;
     }
+    if (feature(FEATURE_REMOTEGAINS))
+        availableBoxes[idx++] = BOXREMOTEGAINS;
 
     numberBoxItems = idx;
 }
@@ -454,6 +459,7 @@ static void evaluateCommand(void)
                   rcOptions[BOXSERVO1] << BOXSERVO1 |
                   rcOptions[BOXSERVO2] << BOXSERVO2 |
                   rcOptions[BOXSERVO3] << BOXSERVO3 |
+                  rcOptions[BOXREMOTEGAINS] << BOXREMOTEGAINS |
                   f.ARMED << BOXARM;
             for (i = 0; i < numberBoxItems; i++) {
                 int flag = (tmp & (1 << availableBoxes[i]));
@@ -800,6 +806,28 @@ static void evaluateCommand(void)
                 serialize8(build[i]); // MMM DD YYYY as ascii, MMM = Jan/Feb... etc
             serialize32(0); // future exp
             serialize32(0); // future exp
+            break;
+
+        case MSP_REMOTEGAINS:
+            headSerialReply(NUM_REMOTE_GAINS * sizeof(remotegain_t));
+            for (i = 0; i < NUM_REMOTE_GAINS; i++) {
+                serialize8(mcfg.remote_gain_settings[i].mode);
+                serialize8(mcfg.remote_gain_settings[i].min);
+                serialize8(mcfg.remote_gain_settings[i].max);
+                serialize8(mcfg.remote_gain_settings[i].source);
+                serialize8(mcfg.remote_gain_settings[i].dest);
+            }
+            break;
+
+        case MSP_SET_REMOTEGAINS:
+            for (i = 0; i < NUM_REMOTE_GAINS; i++) {
+                mcfg.remote_gain_settings[i].mode = read8();
+                mcfg.remote_gain_settings[i].min = read8();
+                mcfg.remote_gain_settings[i].max = read8();
+                mcfg.remote_gain_settings[i].source = read8();
+                mcfg.remote_gain_settings[i].dest = read8();
+            }
+            headSerialReply(0);
             break;
 
         default:                   // we do not know how to handle the (valid) message, indicate error MSP $M!

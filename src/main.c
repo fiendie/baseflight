@@ -18,6 +18,9 @@ extern uint16_t pwmReadRawRC(uint8_t chan);
 // from system_stm32f10x.c
 void SetSysClock(bool overclock);
 
+// external vars (ugh)
+extern int16_t failsafeCnt;
+
 #ifdef USE_LAME_PRINTF
 // gcc/GNU version
 static void _putc(void *p, char c)
@@ -187,6 +190,9 @@ int main(void)
         rcData[i] = 1502;
     rcReadRawFunc = pwmReadRawRC;
     core.numRCChannels = MAX_INPUTS;
+    if (feature(FEATURE_FAILSAFE)) {
+        failsafeCnt = 1000;            // We're in failsafe until we get a valid signal for 1 second on powerup
+    }
 
     if (feature(FEATURE_SERIALRX)) {
         switch (mcfg.serialrx_type) {
