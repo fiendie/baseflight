@@ -24,6 +24,11 @@ When in doubt use baseflight-configurator (see below) to flash the latest stable
 Baseflight has its own cross-platform Chrome app to configure settings and flash new firmware. It can be downloaded from the Chrome Web Store:
 https://chrome.google.com/webstore/detail/baseflight-configurator/mppkgnedeapfejgfimkdoninnofofigk?hl=en
 
+## Building in Eclipse
+For information on how to build and debug baseflight in Eclipse read the following pages in the baseflight Wiki:
+https://github.com/multiwii/baseflight/wiki/Building-with-Eclipse
+https://github.com/multiwii/baseflight/wiki/Debugging-in-Eclipse
+
 ## License
 
 Baseflight is licensed under **GPLv3** (just like MultiWii code it originated from), with all the conditions the license implies.
